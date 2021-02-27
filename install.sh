@@ -3,14 +3,14 @@
 # @file install.sh
 # @brief install script for all configuration
 
-
 # @description check if the user is root then execute the command
 #
 # @arg $1 a bash command
 # @exitcode 0 If successfull.
 # @exitcode 1 On failure
-exec_root(){
+exec_root() {
     local command="$*"
+    echo "$#"
     if [[ ! "$#" -eq 0 ]]; then
         if [[ "$UID" -gt 0 ]]; then
             echo "sudo $command"
@@ -27,9 +27,11 @@ exec_root(){
 # @description Install The ultimate Vim configuration (vimrc) https://github.com/amix/vimrc
 # @exitcode 0 If successfull and install vimrc
 # @exitcode 1 On failure
-install_vimrc(){
-	exec_root apt-get install vim
-	git clone --depth=1 https://github.com/amix/vimrc.git ~/.vim_runtime
+install_vimrc() {
+	echo "Install vimrc"
+
+	exec_root "apt-get install vim" > /dev/null
+	git clone -q --depth=1 https://github.com/amix/vimrc.git ~/.vim_runtime > /dev/null
 	sh ~/.vim_runtime/install_awesome_vimrc.sh
 	# check if the line exist then write it in .bashrc
 	grep -qxF 'alias vi=vim' ~/.bashrc || echo 'alias vi=vim' >> ~/.bashrc
@@ -38,9 +40,13 @@ install_vimrc(){
 # @description Install The ultimate Vim configuration (vimrc) https://github.com/amix/vimrc
 # @exitcode 0 If successfull and edit vimrc
 # @exitcode 1 On failure
-edit_vimrc(){
+edit_vimrc() {
+	echo "Modify vimrc"
+
 	sed -i -e 's/let g:NERDTreeWinPos = "right"/let g:NERDTreeWinPos = "left"/g' ~/.vim_runtime/vimrcs/plugins_config.vim
-    touch .vim_runtime/vimrcs/my_configs.vim
-    echo 'set number' > .vim_runtime/vimrcs/my_configs.vim
+    touch ~/.vim_runtime/vimrcs/my_configs.vim
+    echo 'set number' > ~/.vim_runtime/vimrcs/my_configs.vim
 }
 
+install_vimrc
+edit_vimrc
