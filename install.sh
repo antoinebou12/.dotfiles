@@ -3,6 +3,7 @@
 # @file install.sh
 # @brief install script for all configuration
 
+
 # @description check if the user is root then execute the command
 #
 # @arg $1 a bash command
@@ -10,7 +11,6 @@
 # @exitcode 1 On failure
 exec_root() {
     local command="$*"
-    echo "$#"
     if [[ ! "$#" -eq 0 ]]; then
         if [[ "$UID" -gt 0 ]]; then
             echo "sudo $command"
@@ -24,13 +24,76 @@ exec_root() {
     return 1
 }
 
+
+
+# @description show aliases in the current shell
+# Detect Operating System
+# @noargs
+# @exitcode 0 If successfull.
+# @exitcode 1 On failure
+dist_check() {
+    DIST_CHECK="/etc/os-release"
+    if [ -e $DIST_CHECK ]; then
+        source $DIST_CHECK
+        DISTRO=$ID
+        VERSION=$VERSION_ID
+        export DISTRO
+        export VERSION
+    else
+        echo "Your distribution is not supported (yet)."
+        exit
+    fi
+}
+
+
+# @description install package
+#
+# @args $@ packages to install
+# @exitcode 0 If successfull.
+# @exitcode 1 On failure
+install_package(){
+    echo "apt install $@"
+    dist_check
+    if [ "$DISTRO" == "ubuntu" ] || [ "$DISTRO" == "debian" ] || [ "$DISTRO" == "raspbian" ]; then
+        for var in "$@"; do
+            exec_root "apt-get -qq install -y $var" >/dev/null
+        done
+        return 0
+    fi
+    if [ "$DISTRO" == "arch" ]; then
+        for var in "$@"; do
+            exec_root "pacman -Syu --noconfirm $var" >/dev/null
+        done
+        return 0
+    fi
+    if [ "$DISTRO" = 'fedora' ]; then
+        for var in "$@"; do
+            exec_root "dnf install -y $var" >/dev/null
+        done
+        return 0
+    fi
+    if [ "$DISTRO" == "centos" ] || [ "$DISTRO" == "redhat" ]; then
+        for var in "$@"; do
+            exec_root "yum install -y $var" >/dev/null
+        done
+        return 0
+    fi
+	if [ "$DISTRO" == "Darwin" ]; then
+        for var in "$@"; do
+			brew install -q -y $var > /dev/null
+    	return 0
+    fi
+    return 1
+}
+
+
 # @description Install The ultimate Vim configuration (vimrc) https://github.com/amix/vimrc
 # @exitcode 0 If successfull and install vimrc
 # @exitcode 1 On failure
 install_vimrc() {
 	echo "Install vimrc"
 
-	exec_root "apt-get install -y -q vim" > /dev/null
+	install_package vim
 	git clone -q --depth=1 https://github.com/amix/vimrc.git ~/.vim_runtime > /dev/null
 	sh ~/.vim_runtime/install_awesome_vimrc.sh
 	# check if the line exist then write it in .bashrc
@@ -54,7 +117,7 @@ edit_vimrc(){
 install_oh_my_zsh(){
 	echo "Install Oh my zsh"
 
-    exec_root "apt-get install -y -q zsh wget curl" > /dev/null
+    install_package zsh curl wget > /dev/null
     wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -q -O oh-my-zsh-install.sh
     sed -i -e 's/exec zsh -l//g' oh-my-zsh-install.sh
     bash oh-my-zsh-install.sh
@@ -65,12 +128,41 @@ install_oh_my_zsh(){
 # @exitcode 0 If successfull and edit with my custom config oh my zsh
 # @exitcode 1 On failure
 edit_oh_my_zsh(){
-    echo "install themes for oh-my-zsh"
+    echo "Install themes for oh-my-zsh"
 
     # powerline10k
-    git clone -q --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.oh-my-zsh/custom/themes/powerlevel10k
-    sed -i -e 's#ZSH_THEME="robbyrussell"#ZSH_THEME="powerlevel10k/powerlevel10k"#g' ~/.zshrc
-    zsh -i -c "source ~/.zshrc && p10k configure"
+    #git clone -q --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.oh-my-zsh/custom/themes/powerlevel10k
+    #sed -i -e 's#ZSH_THEME="robbyrussell"#ZSH_THEME="powerlevel10k/powerlevel10k"#g' ~/.zshrc
+    #zsh -i -c "source ~/.zshrc && p10k configure"
+
+    sed -i -e 's#ZSH_THEME="robbyrussell"#ZSH_THEME="lukeandrandall"#g' ~/.zshrc
+    zsh -i -c "source ~/.zshrc"
+
+	mkdir ~/.oh-my-zsh/custom/themes/minimal-theme
+	cat > ~/.oh-my-zsh/custom/themes/minimal-theme/minimal-theme.zsh-theme << EOF
+local return_code="%(?..%{$fg_bold[red]%}%? %{$reset_color%})"
+function my_git_prompt_info() {
+	ref=$(git symbolic-ref HEAD 2> /dev/null) || return
+	GIT_STATUS=$(git_prompt_status)
+  	[[ -n $GIT_STATUS ]] && GIT_STATUS=" $GIT_STATUS"
+  	echo "$ZSH_THEME_GIT_PROMPT_PREFIX${ref#refs/heads/}$GIT_STATUS$ZSH_THEME_GIT_PROMPT_SUFFIX"
+}
+
+PROMPT='%{$fg_bold[green]%}%n@%m%{$reset_color%} %{$fg_bold[blue]%}%2~%{$reset_color%} $(my_git_prompt_info)%{$reset_color%}%B%b '
+RPS1="${return_code}"
+
+ZSH_THEME_GIT_PROMPT_PREFIX="%{$fg[yellow]%}("
+ZSH_THEME_GIT_PROMPT_SUFFIX=") %{$reset_color%}"
+ZSH_THEME_GIT_PROMPT_UNTRACKED="%%"
+ZSH_THEME_GIT_PROMPT_ADDED="+"
+ZSH_THEME_GIT_PROMPT_MODIFIED="*"
+ZSH_THEME_GIT_PROMPT_RENAMED="~"
+ZSH_THEME_GIT_PROMPT_DELETED="!"
+ZSH_THEME_GIT_PROMPT_UNMERGED="?"
+EOF
+
+	sed -i -e 's#ZSH_THEME="robbyrussell"#ZSH_THEME="minimal-theme/minimal-theme"#g' ~/.zshrc
+	zsh -i -c "source ~/.zshrc"
 }
 
 # @description Install tmux
@@ -79,8 +171,8 @@ edit_oh_my_zsh(){
 install_tmux(){
     echo "Install tmux"
 
-    exec_root "apt-get install -y -q tmux xsel xclip" > /dev/null
-    cat > .tmux.conf << EOF
+    install_package tmux > /dev/null
+    cat > ~/.tmux.conf << EOF
 ### -- Windows & Pane creation -- ###
 
 # New Window retains current path, possible values are:
