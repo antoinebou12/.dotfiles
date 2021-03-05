@@ -78,10 +78,11 @@ install_package(){
         done
         return 0
     fi
-	if [ "$DISTRO" == "Darwin" ]; then
+	if [ "$OSTYPE" == "Darwin" ]; then
         for var in "$@"; do
 			brew install -q -y $var > /dev/null
-    	return 0
+        done
+        return 0
     fi
     return 1
 }
