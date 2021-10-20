@@ -136,11 +136,10 @@ edit_oh_my_zsh(){
     #sed -i -e 's#ZSH_THEME="robbyrussell"#ZSH_THEME="powerlevel10k/powerlevel10k"#g' ~/.zshrc
     #zsh -i -c "source ~/.zshrc && p10k configure"
 
-    sed -i -e 's#ZSH_THEME="robbyrussell"#ZSH_THEME="lukeandrandall"#g' ~/.zshrc
+    sed -i -e 's#ZSH_THEME="robbyrussell"#ZSH_THEME="lukerandall"#g' ~/.zshrc
     zsh -i -c "source ~/.zshrc"
-
-	mkdir ~/.oh-my-zsh/custom/themes/minimal-theme
-	cat > ~/.oh-my-zsh/custom/themes/minimal-theme/minimal-theme.zsh-theme << EOF
+    mkdir ~/.oh-my-zsh/themes/minimal-theme
+    cat > ~/.oh-my-zsh/themes/minimal-theme/minimal-theme.zsh-theme << EOF
 local return_code="%(?..%{$fg_bold[red]%}%? %{$reset_color%})"
 function my_git_prompt_info() {
 	ref=$(git symbolic-ref HEAD 2> /dev/null) || return
