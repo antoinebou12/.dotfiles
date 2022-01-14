@@ -80,7 +80,7 @@ install_package(){
     fi
 	if [ "$OSTYPE" == "Darwin" ]; then
         for var in "$@"; do
-			brew install -q -y $var > /dev/null
+	    exec_root "brew install -q -y $var" > /dev/null
         done
         return 0
     fi
