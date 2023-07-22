@@ -25,7 +25,6 @@ exec_root() {
 }
 
 
-
 # @description show aliases in the current shell
 # Detect Operating System
 # @noargs
@@ -78,9 +77,9 @@ install_package(){
         done
         return 0
     fi
-	if [ "$OSTYPE" == "Darwin" ]; then
+    if [ "$OSTYPE" == "Darwin" ]; then
         for var in "$@"; do
-	    exec_root "brew install -q -y $var" > /dev/null
+            exec_root "brew install -q -y $var" > /dev/null
         done
         return 0
     fi
@@ -88,17 +87,20 @@ install_package(){
 }
 
 
+
 # @description Install The ultimate Vim configuration (vimrc) https://github.com/amix/vimrc
 # @exitcode 0 If successfull and install vimrc
 # @exitcode 1 On failure
 install_vimrc() {
-	echo "Install vimrc"
+    echo "Install vimrc"
 
-	install_package vim
-	git clone -q --depth=1 https://github.com/amix/vimrc.git ~/.vim_runtime > /dev/null
-	sh ~/.vim_runtime/install_awesome_vimrc.sh
-	# check if the line exist then write it in .bashrc
-	grep -qxF 'alias vi=vim' ~/.bashrc || echo 'alias vi=vim' >> ~/.bashrc
+    install_package vim git
+    if [ ! -d ~/.vim_runtime ]; then
+        git clone -q --depth=1 https://github.com/amix/vimrc.git ~/.vim_runtime > /dev/null
+    fi
+    sh ~/.vim_runtime/install_awesome_vimrc.sh
+    # check if the line exist then write it in .bashrc
+    grep -qxF 'alias vi=vim' ~/.bashrc || echo 'alias vi=vim' >> ~/.bashrc
 }
 
 # @description Edit vimrc for my need
@@ -108,7 +110,9 @@ edit_vimrc(){
     echo "Modify vimrc"
 
     sed -i -e 's/let g:NERDTreeWinPos = "right"/let g:NERDTreeWinPos = "left"/g' ~/.vim_runtime/vimrcs/plugins_config.vim
-    touch ~/.vim_runtime/vimrcs/my_configs.vim
+    if [ ! -f ~/.vim_runtime/vimrcs/my_configs.vim ]; then
+        touch ~/.vim_runtime/vimrcs/my_configs.vim
+    fi
     echo 'set number' > ~/.vim_runtime/vimrcs/my_configs.vim
 }
 
@@ -116,7 +120,7 @@ edit_vimrc(){
 # @exitcode 0 If successfull and install oh my zsh
 # @exitcode 1 On failure
 install_oh_my_zsh(){
-	echo "Install Oh my zsh"
+    echo "Install Oh my zsh"
 
     install_package zsh curl wget > /dev/null
     wget https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh -q -O oh-my-zsh-install.sh
@@ -131,14 +135,11 @@ install_oh_my_zsh(){
 edit_oh_my_zsh(){
     echo "Install themes for oh-my-zsh"
 
-    # powerline10k
-    #git clone -q --depth=1 https://github.com/romkatv/powerlevel10k.git ~/.oh-my-zsh/custom/themes/powerlevel10k
-    #sed -i -e 's#ZSH_THEME="robbyrussell"#ZSH_THEME="powerlevel10k/powerlevel10k"#g' ~/.zshrc
-    #zsh -i -c "source ~/.zshrc && p10k configure"
-
     sed -i -e 's#ZSH_THEME="robbyrussell"#ZSH_THEME="lukerandall"#g' ~/.zshrc
     zsh -i -c "source ~/.zshrc"
-    mkdir ~/.oh-my-zsh/themes/minimal-theme
+    if [ ! -d ~/.oh-my-zsh/themes/minimal-theme ]; then
+        mkdir ~/.oh-my-zsh/themes/minimal-theme
+    fi
     cat > ~/.oh-my-zsh/themes/minimal-theme/minimal-theme.zsh-theme << EOF
 local return_code="%(?..%{$fg_bold[red]%}%? %{$reset_color%})"
 
@@ -155,7 +156,7 @@ ZSH_THEME_GIT_PROMPT_DELETED="!"
 ZSH_THEME_GIT_PROMPT_UNMERGED="?"
 EOF
 
-	zsh -i -c "source ~/.zshrc"
+    zsh -i -c "source ~/.zshrc"
 }
 
 # @description Install tmux
