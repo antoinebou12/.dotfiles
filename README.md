@@ -1,20 +1,23 @@
 # cli_tools
-Dotfiles that i use for vim and tmux and oh-my-zsh
+This repository contains my personal dotfiles for vim, tmux, and oh-my-zsh. These configuration files are used to customize the behavior of these tools to my liking.
 
-Install the dotfiles
+# Installation
+
+To run the installation script, use the following command:
 ```bash
 bash install.sh
 source install.sh
 install_vimrc
 ```
+# Updating
 
-Update the configuration files
+To run the update script, use the following command:
 ```bash
 bash update.sh
 ```
+# Uninstallation
 
-
-Uninstall dotfiles that also make a backup
+To run the uninstallation script, use the following command:
 ```bash
 bash uninstall.sh
 source uninstall.sh
