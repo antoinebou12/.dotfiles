@@ -605,7 +605,56 @@ install_python() {
     return 1
 }
 
-# Function to display usage information
+# @description Install Node Version Manager (nvm)
+# @exitcode 0 If successful and install nvm
+# @exitcode 1 On failure
+install_nvm() {
+    echo "Installing nvm..."
+
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh | bash
+    source ~/.bashrc
+    nvm install node
+}
+
+# @description Install .NET Core
+# @exitcode 0 If successful and install .NET Core
+# @exitcode 1 On failure
+install_dotnet() {
+    echo "Installing .NET Core..."
+
+    dist_check
+    if [ "$DISTRO" == "ubuntu" ] || [ "$DISTRO" == "debian" ] || [ "$DISTRO" == "raspbian" ]; then
+        wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+        sudo dpkg -i packages-microsoft-prod.deb
+        sudo apt-get update
+        sudo apt-get install -y apt-transport-https
+        sudo apt-get update
+        sudo apt-get install -y dotnet-sdk-3.1
+    fi
+    # Add other distributions here...
+}
+
+# @description Install Go
+# @exitcode 0 If successful and install Go
+# @exitcode 1 On failure
+install_go() {
+    echo "Installing Go..."
+
+    wget https://golang.org/dl/go1.16.5.linux-amd64.tar.gz
+    sudo tar -C /usr/local -xzf go1.16.5.linux-amd64.tar.gz
+    echo "export PATH=$PATH:/usr/local/go/bin" >> ~/.bashrc
+    source ~/.bashrc
+}
+
+# @description Install Rust
+# @exitcode 0 If successful and install Rust
+# @exitcode 1 On failure
+install_rust() {
+    echo "Installing Rust..."
+
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+}
+
 usage() {
     echo "Usage: $0 [option]"
     echo "Options:"
@@ -615,6 +664,10 @@ usage() {
     echo "  install_vimrc         Install vimrc"
     echo "  install_oh_my_zsh     Install Oh My Zsh"
     echo "  install_tmux          Install tmux"
+    echo "  install_nvm           Install Node Version Manager (nvm)"
+    echo "  install_dotnet        Install .NET Core"
+    echo "  install_go            Install Go"
+    echo "  install_rust          Install Rust"
     echo "  help                  Display this help message"
     exit 1
 }
@@ -633,14 +686,24 @@ handle_option() {
             ;;
         install_vimrc)
             install_vimrc
-            edit_vimrc
             ;;
         install_oh_my_zsh)
             install_oh_my_zsh
-            edit_oh_my_zsh
             ;;
         install_tmux)
             install_tmux
+            ;;
+        install_nvm)
+            install_nvm
+            ;;
+        install_dotnet)
+            install_dotnet
+            ;;
+        install_go)
+            install_go
+            ;;
+        install_rust)
+            install_rust
             ;;
         help)
             usage
