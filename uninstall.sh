@@ -20,3 +20,26 @@ uninstall_tmux(){
 uninstall_oh-my-zsh(){
     zsh -c -i "uninstall_oh-my-zsh"
 }
+
+# @description Uninstall JDK
+uninstall_jdk() {
+    echo "Uninstalling JDK..."
+
+    # Check if JDK is installed
+    if type -p java > /dev/null; then
+        echo "JDK is installed. Proceeding with uninstallation..."
+
+        # Uninstall JDK
+        sudo apt-get purge openjdk-\* icedtea-\* icedtea6-\*
+        sudo apt-get autoremove
+
+        echo "JDK has been uninstalled."
+    else
+        echo "JDK is not installed."
+    fi
+}
+
+uninstall_vimrc
+uninstall_tmux
+uninstall_oh_my_zsh
+uninstall_jdk
