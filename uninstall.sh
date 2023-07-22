@@ -91,6 +91,77 @@ uninstall_go() {
     fi
 }
 
+# @description Uninstall Jupyter
+uninstall_jupyter() {
+    echo "Uninstalling Jupyter..."
+
+    # Check if Jupyter is installed
+    if type -p jupyter > /dev/null; then
+        echo "Jupyter is installed. Proceeding with uninstallation..."
+
+        # Uninstall Jupyter
+        pip uninstall jupyter
+
+        echo "Jupyter has been uninstalled."
+    else
+        echo "Jupyter is not installed."
+    fi
+}
+
+# @description Uninstall AWS CLI
+uninstall_aws_cli() {
+    echo "Uninstalling AWS CLI..."
+
+    # Check if AWS CLI is installed
+    if type -p aws > /dev/null; then
+        echo "AWS CLI is installed. Proceeding with uninstallation..."
+
+        # Uninstall AWS CLI
+        pip uninstall awscli
+
+        echo "AWS CLI has been uninstalled."
+    else
+        echo "AWS CLI is not installed."
+    fi
+}
+
+# @description Uninstall Azure CLI
+uninstall_azure_cli() {
+    echo "Uninstalling Azure CLI..."
+
+    # Check if Azure CLI is installed
+    if type -p az > /dev/null; then
+        echo "Azure CLI is installed. Proceeding with uninstallation..."
+
+        # Uninstall Azure CLI
+        sudo apt-get remove azure-cli
+        sudo apt-get autoremove
+
+        echo "Azure CLI has been uninstalled."
+    else
+        echo "Azure CLI is not installed."
+    fi
+}
+
+# @description Uninstall NVM
+uninstall_nvm() {
+    echo "Uninstalling NVM..."
+
+    # Check if NVM is installed
+    if type -p nvm > /dev/null; then
+        echo "NVM is installed. Proceeding with uninstallation..."
+
+        # Uninstall NVM
+        rm -rf "$HOME/.nvm"
+        sed -i '/nvm/d' "$HOME/.bashrc"
+        sed -i '/nvm/d' "$HOME/.bash_profile"
+        sed -i '/nvm/d' "$HOME/.zshrc"
+
+        echo "NVM has been uninstalled."
+    else
+        echo "NVM is not installed."
+    fi
+}
 
 uninstall_vimrc
 uninstall_tmux
@@ -98,3 +169,7 @@ uninstall_oh_my_zsh
 uninstall_jdk
 uninstall_rust
 uninstall_go
+uninstall_jupyter
+uninstall_aws_cli
+uninstall_azure_cli
+uninstall_nvm
