@@ -655,6 +655,155 @@ install_rust() {
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 }
 
+
+# @description Install Azure CLI
+# @exitcode 0 If successfull and install Azure CLI
+# @exitcode 1 On failure
+install_azure_cli() {
+    echo "Installing Azure CLI..."
+
+    # Install Azure CLI
+    curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+
+    return 0
+}
+
+# @description Install AWS CLI
+# @exitcode 0 If successfull and install AWS CLI
+# @exitcode 1 On failure
+install_aws_cli() {
+    echo "Installing AWS CLI..."
+
+    # Install AWS CLI
+    curl "https://d1vvhvl2y92vvt.cloudfront.net/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+    unzip awscliv2.zip
+    sudo ./aws/install
+
+    return 0
+}
+
+# @description Install Docker and Docker Compose
+# @exitcode 0 If successfull and install Docker and Docker Compose
+# @exitcode 1 On failure
+install_docker() {
+    echo "Installing Docker and Docker Compose..."
+
+    # Install Docker
+    curl -fsSL https://get.docker.com -o get-docker.sh
+    sudo sh get-docker.sh
+
+    # Install Docker Compose
+    sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
+
+    return 0
+}
+
+# @description Install kubectl
+# @exitcode 0 If successfull and install kubectl
+# @exitcode 1 On failure
+install_kubectl() {
+    echo "Installing kubectl..."
+
+    # Install kubectl
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    chmod +x kubectl
+    sudo mv kubectl /usr/local/bin/
+
+    return 0
+}
+
+# @description Install JupyterLab
+# @exitcode 0 If successfull and install JupyterLab
+# @exitcode 1 On failure
+install_jupyterlab() {
+    echo "Installing JupyterLab..."
+
+    # Check if Python is installed
+    if ! command -v python3 &> /dev/null
+    then
+        echo "Python could not be found. Please install Python first."
+        return 1
+    fi
+
+    # Install JupyterLab
+    pip3 install jupyterlab
+
+    return 0
+}
+
+
+# @description Add aliases to bashrc, zshrc, and fishrc
+# @exitcode 0 If successful
+# @exitcode 1 On failure
+add_aliases() {
+    echo "Adding aliases..."
+
+    # Define your aliases here
+    local aliases=(
+        "alias ll='ls -l'"
+        "alias la='ls -A'"
+        "alias l='ls -CF'"
+        "alias dotnet='~/.dotnet/dotnet'"
+        "alias jupyterlab='~/.local/bin/jupyter-lab'"
+    )
+
+    # Add aliases to bashrc
+    if [ -f ~/.bashrc ]; then
+        for alias in "${aliases[@]}"; do
+            echo "$alias" >> ~/.bashrc
+        done
+    fi
+
+    # Add aliases to zshrc
+    if [ -f ~/.zshrc ]; then
+        for alias in "${aliases[@]}"; do
+            echo "$alias" >> ~/.zshrc
+        done
+    fi
+
+    # Add aliases to fishrc (fish shell uses a different syntax for aliases)
+    if [ -f ~/.config/fish/config.fish ]; then
+        for alias in "${aliases[@]}"; do
+            # Convert bash-style alias to fish-style
+            fish_alias=$(echo "$alias" | sed 's/alias /alias /' | sed 's/=/ /')
+            echo "$fish_alias" >> ~/.config/fish/config.fish
+        done
+    fi
+
+    return 0
+}
+
+# @description Install network and performance tools
+# @exitcode 0 If successful
+# @exitcode 1 On failure
+install_network_performance_tools() {
+    echo "Installing network and performance tools..."
+    dist_check
+    if [ "$DISTRO" == "ubuntu" ] || [ "$DISTRO" == "debian" ] || [ "$DISTRO" == "raspbian" ]; then
+        exec_root "apt-get -qq install -y nmap traceroute htop net-tools iperf3" >/dev/null
+        return 0
+    fi
+    if [ "$DISTRO" == "arch" ]; then
+        exec_root "pacman -Syu --noconfirm nmap traceroute htop net-tools iperf3" >/dev/null
+        return 0
+    fi
+    if [ "$DISTRO" = 'fedora' ]; then
+        exec_root "dnf install -y nmap traceroute htop net-tools iperf3" >/dev/null
+        return 0
+    fi
+    if [ "$DISTRO" == "centos" ] || [ "$DISTRO" == "redhat" ]; then
+        exec_root "yum install -y nmap traceroute htop net-tools iperf3" >/dev/null
+        return 0
+    fi
+    if [ "$OSTYPE" == "Darwin" ]; then
+        exec_root "brew install -q -y nmap traceroute htop net-tools iperf3" > /dev/null
+        return 0
+    fi
+    return 1
+}
+
+
 usage() {
     echo "Usage: $0 [option]"
     echo "Options:"
@@ -668,6 +817,12 @@ usage() {
     echo "  install_dotnet        Install .NET Core"
     echo "  install_go            Install Go"
     echo "  install_rust          Install Rust"
+    echo " install_azure_cli Install Azure CLI"
+    echo " install_aws_cli Install AWS CLI"
+    echo " install_docker Install Docker and Docker Compose"
+    echo " install_kubectl Install kubectl"
+    echo " install_jupyterlab Install JupyterLab"
+    echo "install_network_performance_tools Install Network Performance Tools"
     echo "  help                  Display this help message"
     exit 1
 }
@@ -703,8 +858,27 @@ handle_option() {
             install_go
             ;;
         install_rust)
-            install_rust
+        install_rust
             ;;
+        install_azure_cli)
+        install_azure_cli
+        ;;
+        install_aws_cli)
+        install_aws_cli
+        ;;
+        install_docker)
+        install_docker
+        ;;
+        install_kubectl)
+        install_kubectl
+        ;;
+        install_jupyterlab)
+        install_jupyterlab
+        add_aliases
+        ;;
+        install_network_performance_tools)
+        install_network_performance_tools
+        ;;
         help)
             usage
             ;;
