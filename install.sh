@@ -485,13 +485,176 @@ set -g @continuum-restore 'on'
 EOF
 }
 
-# vim Text editor
-install_vimrc
-edit_vimrc
+# @description Install fish shell
+# @exitcode 0 If successfull and install fish shell
+# @exitcode 1 On failure
+install_fish() {
+    echo "Installing fish shell..."
 
-# oh_my_zsh Terminal Interface
-install_oh_my_zsh
-edit_oh_my_zsh
+    dist_check
+    if [ "$DISTRO" == "ubuntu" ] || [ "$DISTRO" == "debian" ] || [ "$DISTRO" == "raspbian" ]; then
+        exec_root "apt-get -qq install -y fish" >/dev/null
+        return 0
+    fi
+    if [ "$DISTRO" == "arch" ]; then
+        exec_root "pacman -Syu --noconfirm fish" >/dev/null
+        return 0
+    fi
+    if [ "$DISTRO" = 'fedora' ]; then
+        exec_root "dnf install -y fish" >/dev/null
+        return 0
+    fi
+    if [ "$DISTRO" == "centos" ] || [ "$DISTRO" == "redhat" ]; then
+        exec_root "yum install -y fish" >/dev/null
+        return 0
+    fi
+    if [ "$OSTYPE" == "Darwin" ]; then
+        exec_root "brew install -q -y fish" > /dev/null
+        return 0
+    fi
+    return 1
+}
 
-# tmux Terminal multiplexer
-install_tmux
+# @description Install build-essential package
+# @exitcode 0 If successfull and install build-essential package
+# @exitcode 1 On failure
+install_build_essential() {
+    echo "Installing build-essential package..."
+
+    dist_check
+    if [ "$DISTRO" == "ubuntu" ] || [ "$DISTRO" == "debian" ] || [ "$DISTRO" == "raspbian" ]; then
+        exec_root "apt-get -qq install -y build-essential" >/dev/null
+        return 0
+    fi
+    if [ "$DISTRO" == "arch" ]; then
+        exec_root "pacman -Syu --noconfirm base-devel" >/dev/null
+        return 0
+    fi
+    if [ "$DISTRO" = 'fedora' ]; then
+        exec_root "dnf groupinstall -y 'Development Tools'" >/dev/null
+        return 0
+    fi
+    if [ "$DISTRO" == "centos" ] || [ "$DISTRO" == "redhat" ]; then
+        exec_root "yum groupinstall -y 'Development Tools'" >/dev/null
+        return 0
+    fi
+    if [ "$OSTYPE" == "Darwin" ]; then
+        echo "The build-essential package is not available for macOS. Please install the required tools manually."
+        return 1
+    fi
+    return 1
+}
+
+# @description Install JDK
+# @exitcode 0 If successfull and install JDK
+# @exitcode 1 On failure
+install_jdk() {
+    echo "Installing JDK..."
+
+    dist_check
+    if [ "$DISTRO" == "ubuntu" ] || [ "$DISTRO" == "debian" ] || [ "$DISTRO" == "raspbian" ]; then
+        exec_root "apt-get -qq install -y default-jdk" >/dev/null
+        return 0
+    fi
+    if [ "$DISTRO" == "arch" ]; then
+        exec_root "pacman -Syu --noconfirm jdk-openjdk" >/dev/null
+        return 0
+    fi
+    if [ "$DISTRO" = 'fedora' ]; then
+        exec_root "dnf install -y java-11-openjdk-devel" >/dev/null
+        return 0
+    fi
+    if [ "$DISTRO" == "centos" ] || [ "$DISTRO" == "redhat" ]; then
+        exec_root "yum install -y java-11-openjdk-devel" >/dev/null
+        return 0
+    fi
+    if [ "$OSTYPE" == "Darwin" ]; then
+        exec_root "brew install --cask adoptopenjdk" >/dev/null
+        return 0
+    fi
+    return 1
+}
+
+# @description Install Python
+# @exitcode 0 If successfull and install Python
+# @exitcode 1 On failure
+install_python() {
+    echo "Installing Python..."
+
+    dist_check
+    if [ "$DISTRO" == "ubuntu" ] || [ "$DISTRO" == "debian" ] || [ "$DISTRO" == "raspbian" ]; then
+        exec_root "apt-get -qq install -y python3 python3-pip" >/dev/null
+        return 0
+    fi
+    if [ "$DISTRO" == "arch" ]; then
+        exec_root "pacman -Syu --noconfirm python python-pip" >/dev/null
+        return 0
+    fi
+    if [ "$DISTRO" = 'fedora' ]; then
+        exec_root "dnf install -y python3 python3-pip" >/dev/null
+        return 0
+    fi
+    if [ "$DISTRO" == "centos" ] || [ "$DISTRO" == "redhat" ]; then
+        exec_root "yum install -y python3 python3-pip" >/dev/null
+        return 0
+    fi
+    if [ "$OSTYPE" == "Darwin" ]; then
+        exec_root "brew install python3" >/dev/null
+        return 0
+    fi
+    return 1
+}
+
+# Function to display usage information
+usage() {
+    echo "Usage: $0 [option]"
+    echo "Options:"
+    echo "  install_python        Install Python"
+    echo "  install_jdk           Install JDK"
+    echo "  install_build_essential Install build-essential"
+    echo "  install_vimrc         Install vimrc"
+    echo "  install_oh_my_zsh     Install Oh My Zsh"
+    echo "  install_tmux          Install tmux"
+    echo "  help                  Display this help message"
+    exit 1
+}
+
+# Function to handle command-line arguments
+handle_option() {
+    case $1 in
+        install_python)
+            install_python
+            ;;
+        install_jdk)
+            install_jdk
+            ;;
+        install_build_essential)
+            install_build_essential
+            ;;
+        install_vimrc)
+            install_vimrc
+            edit_vimrc
+            ;;
+        install_oh_my_zsh)
+            install_oh_my_zsh
+            edit_oh_my_zsh
+            ;;
+        install_tmux)
+            install_tmux
+            ;;
+        help)
+            usage
+            ;;
+        *)
+            echo "Unknown option: $1"
+            usage
+            ;;
+    esac
+}
+
+# Check if any command-line arguments were provided
+if [ $# -eq 0 ]; then
+    usage
+else
+    handle_option $1
+fi
